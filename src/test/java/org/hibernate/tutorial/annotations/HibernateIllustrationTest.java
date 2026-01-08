@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.hibernate.Session;
 
-import org.h2.tools.Console;
+//import org.h2.tools.Console;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
@@ -134,9 +134,6 @@ public class HibernateIllustrationTest extends TestCase {
 				session.close();
 			}
 		}
-
-		//++ Para ver realmente el contenido de la Base de datos en memoria en depuración
-		Console.main();
 
 	}
 	
