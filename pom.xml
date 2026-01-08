@@ -20,11 +20,11 @@
             <version>6.6.4.Final</version>
         </dependency>
         <!-- https://central.sonatype.com/artifact/com.mysql/mysql-connector-j/overview -->
-        <dependency>
+       <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>9.1.0</version>
-        </dependency>  
+            <version>9.5.0</version>
+        </dependency> 
 
            <!-- The tutorials use JUnit test cases to illustrate usage -->
         <dependency>
