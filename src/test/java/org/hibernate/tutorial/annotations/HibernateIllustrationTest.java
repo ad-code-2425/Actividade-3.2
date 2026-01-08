@@ -27,8 +27,11 @@ import static java.lang.System.out;
 import static java.time.LocalDateTime.now;
 
 import java.sql.SQLException;
+import java.util.List;
 
+import org.hibernate.Session;
 
+import org.h2.tools.Console;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
@@ -45,6 +48,7 @@ import junit.framework.TestCase;
  * @author Steve Ebersole
  */
 public class HibernateIllustrationTest extends TestCase {
+	
 	private SessionFactory sessionFactory;
 
 	@Override
@@ -75,18 +79,64 @@ public class HibernateIllustrationTest extends TestCase {
 	}
 
 	public void testBasicUsage() throws SQLException {
-		// create a couple of events...
-		sessionFactory.inTransaction(session -> {
+		/* Versión anterior (programación funcional):
+		 // create a couple of events...
+		 sessionFactory.inTransaction(session -> {
+			 session.persist(new Event("Our very first event 2025!", now()));
+			 session.persist(new Event("A follow up event 2025", now()));
+		 });
+
+		 // now lets pull events from the database and list them
+		 sessionFactory.inTransaction(session -> {
+			 session.createSelectionQuery("from Event", Event.class).getResultList()
+					 .forEach(event -> out.println("Event (" + event.getDate() + ") : " + event.getTitle()));
+		 });
+		 */
+		// create a couple of events using explicit session/transaction
+		Session session = null;
+		try {
+			session = sessionFactory.openSession();
+			session.beginTransaction();
 			session.persist(new Event("Our very first event 2025!", now()));
 			session.persist(new Event("A follow up event 2025", now()));
-		});
+			session.getTransaction().commit();
+		}
+		catch (RuntimeException e) {
+			if (session != null && session.getTransaction() != null && session.getTransaction().isActive()) {
+				session.getTransaction().rollback();
+			}
+			throw e;
+		}
+		finally {
+			if (session != null) {
+				session.close();
+			}
+		}
 
-		// now lets pull events from the database and list them
-		sessionFactory.inTransaction(session -> {
-			session.createSelectionQuery("from Event", Event.class).getResultList()
-					.forEach(event -> out.println("Event (" + event.getDate() + ") : " + event.getTitle()));
-		});
-		
+		// now lets pull events from the database and list them without functional style
+		try {
+			session = sessionFactory.openSession();
+			session.beginTransaction();
+			List<Event> events = session.createSelectionQuery("from Event", Event.class).getResultList();
+			for (Event event : events) {
+				out.println("Event (" + event.getDate() + ") : " + event.getTitle());
+			}
+			session.getTransaction().commit();
+		}
+		catch (RuntimeException e) {
+			if (session != null && session.getTransaction() != null && session.getTransaction().isActive()) {
+				session.getTransaction().rollback();
+			}
+			throw e;
+		}
+		finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+
+		//++ Para ver realmente el contenido de la Base de datos en memoria en depuración
+		Console.main();
 
 	}
 	
